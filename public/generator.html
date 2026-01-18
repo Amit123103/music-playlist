@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Generator | SonicMind</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-wave-square"></i>
+            Sonic<span>Mind</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="player.html">Web Player</a>
+            <a href="upload.html">Library</a>
+            <a href="generator.html" class="active" style="color:var(--primary)">Generator</a>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-outline" id="savePlaylistBtn"><i class="fas fa-save"></i> Save</button>
+            <button class="btn btn-primary" id="exportBtn"><i class="fab fa-spotify"></i> Export</button>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 80px; max-width: 1600px;">
+        <div class="builder-layout">
+
+            <!-- Controls & Source -->
+            <div class="glass" style="padding: 2rem; height: 85vh; display: flex; flex-direction: column;">
+                <h3 style="margin-bottom: 1.5rem;">Generator Controls</h3>
+
+                <div class="form-group">
+                    <label>Generation Mode</label>
+                    <div
+                        style="display: flex; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 5px; margin-bottom: 1rem;">
+                        <button class="btn" style="flex: 1; font-size: 0.9rem;" id="modeManual">Manual</button>
+                        <button class="btn btn-primary" style="flex: 1; font-size: 0.9rem;" id="modeAuto">AI
+                            Auto</button>
+                    </div>
+                </div>
+
+                <div id="aiControls">
+                    <div class="form-group">
+                        <label>Vibe / Mood</label>
+                        <select id="vibeSelect">
+                            <option value="energetic">High Energy (Workout)</option>
+                            <option value="chill">Chill / Lo-Fi</option>
+                            <option value="focus">Deep Focus</option>
+                            <option value="party">Party Time</option>
+                            <option value="melancholy">Rainy Day</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target Duration (Minutes)</label>
+                        <input type="range" min="10" max="180" value="60" id="durationRange"
+                            oninput="this.nextElementSibling.value = this.value + ' min'">
+                        <output style="float: right; font-size: 0.8rem; color: var(--text-muted); margin-top: -10px;">60
+                            min</output>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;"
+                        id="generateBtn">
+                        <i class="fas fa-magic"></i> Generate Playlist
+                    </button>
+
+                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        <label style="font-size: 0.85rem;"><i class="fas fa-robot"></i> Unsupervised Learning
+                            Status</label>
+                        <p style="font-size: 0.8rem; opacity: 0.7;">Clustering engine ready. Analyzed <span
+                                id="analyzedCount">0</span> tracks.</p>
+                    </div>
+                </div>
+
+                <div id="manualControls"
+                    style="display: none; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column;">
+                    <h4 style="margin: 1rem 0 0.5rem; font-size: 1rem;">Source Library</h4>
+                    <input type="text" placeholder="Search..." style="margin-bottom: 1rem; padding: 0.5rem;">
+                    <div class="music-list" id="sourceList" style="flex-grow: 1;">
+                        <!-- Source items draggable -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playlist View -->
+            <div class="glass" style="padding: 2rem; height: 85vh; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2 id="playlistTitle" contenteditable="true"
+                            style="border-bottom: 1px dashed var(--glass-border); display: inline-block;">My Awesome
+                            Playlist</h2>
+                        <i class="fas fa-pen"
+                            style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem;"></i>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.5rem; font-weight: 700;">
+                            <span id="playlistDuration">00:00</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted);">
+                            <span id="playlistCount">0</span> Tracks
+                        </div>
+                    </div>
+                </div>
+
+                <div class="playlist-container"
+                    style="flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.1); border-radius: 15px; padding: 1rem;">
+                    <div id="playlistList" style="min-height: 100%;">
+                        <!-- Playlist items drop here -->
+                        <div class="empty-state"
+                            style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.6;">
+                            <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Playlist is empty</p>
+                            <p style="font-size: 0.9rem;">Use Manual mode to drag tracks here or AI Auto to generate.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Toggle Modes
+        const modeManual = document.getElementById('modeManual');
+        const modeAuto = document.getElementById('modeAuto');
+        const aiControls = document.getElementById('aiControls');
+        const manualControls = document.getElementById('manualControls');
+
+        modeManual.addEventListener('click', () => {
+            modeManual.classList.add('btn-primary');
+            modeAuto.classList.remove('btn-primary');
+            aiControls.style.display = 'none';
+            manualControls.style.display = 'flex';
+        });
+
+        modeAuto.addEventListener('click', () => {
+            modeAuto.classList.add('btn-primary');
+            modeManual.classList.remove('btn-primary');
+            aiControls.style.display = 'block';
+            manualControls.style.display = 'none';
+        });
+
+        // Default view
+        modeAuto.click();
+    </script>
+</body>
+
+</html>

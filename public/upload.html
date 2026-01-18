@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Music | SonicMind</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-wave-square"></i>
+            Sonic<span>Mind</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="player.html">Web Player</a>
+            <a href="upload.html" class="active" style="color:var(--primary)">Library</a>
+            <a href="generator.html">Generator</a>
+        </div>
+        <button class="btn btn-outline" id="connectBtn">Connect App</button>
+    </nav>
+
+    <div class="container" style="margin-top: 80px;">
+        <header style="margin-bottom: 3rem; text-align: center;">
+            <h1 style="font-size: 2.5rem;">Manage Your Library</h1>
+            <p>Upload your tracks. Our AI will automatically analyze their sonic characteristics (BPM, key, energy, and
+                mood) for the generator.</p>
+        </header>
+
+        <div class="grid-3" style="grid-template-columns: 1fr 2fr;">
+
+            <!-- Upload Section -->
+            <div class="glass" style="padding: 2rem; height: fit-content;">
+                <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-cloud-upload-alt"></i> Upload Tracks</h3>
+
+                <div class="upload-zone" id="dropZone">
+                    <i class="fas fa-music" style="font-size: 2rem; margin-bottom: 1rem; color: var(--text-muted);"></i>
+                    <p>Drag & Drop Audio Files<br>or <span style="color: var(--primary); cursor:pointer;">Browse</span>
+                    </p>
+                    <input type="file" id="fileInput" multiple accept="audio/*"
+                        style="opacity: 0; position: absolute; width: 1px; height: 1px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Import from Source</label>
+                    <select id="importSource">
+                        <option value="local">Local Files</option>
+                        <option value="spotify" disabled>Spotify (Connect First)</option>
+                        <option value="youtube" disabled>YouTube Music (Connect First)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Library List -->
+            <div class="glass" style="padding: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h3><i class="fas fa-list"></i> Your Collection (<span id="trackCount">0</span>)</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" placeholder="Search tracks..." style="padding: 0.5rem; width: 200px;">
+                        <button class="btn btn-outline" style="padding: 0.5rem 1rem;"><i
+                                class="fas fa-filter"></i></button>
+                    </div>
+                </div>
+
+                <div class="music-list" id="libraryList">
+                    <!-- Tracks will be injected here via JS -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No tracks found. Upload some music to get started.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Simple drag and drop handling for UI feedback
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('click', () => document.getElementById('fileInput').click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--primary)';
+            dropZone.style.background = 'var(--glass)';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--glass-border)';
+            dropZone.style.background = 'transparent';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--glass-border)';
+            dropZone.style.background = 'transparent';
+
+            if (e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+    </script>
+</body>
+
+</html>

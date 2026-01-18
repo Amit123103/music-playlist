@@ -1,0 +1,203 @@
+/* Now Playing Overlay Styles */
+#nowPlayingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.85);
+    /* Dark overlay backdrop */
+    backdrop-filter: blur(20px);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.np-card {
+    width: 90%;
+    max-width: 600px;
+    height: 500px;
+    background: white;
+    /* Matching image style (White top) */
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    animation: slideUpPop 0.4s ease-out;
+}
+
+/* Dark mode adjustment if user prefers, but sticking to image for now */
+/* To make it fit the app better, let's use a very light grey or off-white if sticking to 'light' card, 
+   but strictly speaking the user asked for it to look like the image. */
+
+.window-controls {
+    padding: 15px 20px;
+    display: flex;
+    gap: 8px;
+}
+
+.window-controls span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: block;
+}
+
+.np-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.np-header h3 {
+    font-size: 1.2rem;
+    color: #334155;
+    /* Slate-700 */
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.np-track-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.np-track-info h2 {
+    color: #0f172a;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    /* Truncate */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 20px;
+}
+
+.np-track-info p {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+.np-controls {
+    padding: 10px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.np-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #64748b;
+    transition: 0.2s;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.np-btn:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.np-btn.play-btn-large {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    border: 2px solid #0f172a;
+    color: #0f172a;
+    margin: 0 20px;
+}
+
+.np-btn.play-btn-large:hover {
+    background: #0f172a;
+    color: white;
+    transform: scale(1.05);
+}
+
+.main-controls {
+    display: flex;
+    align-items: center;
+}
+
+/* Visualizer Section */
+.np-visualizer-container {
+    flex-grow: 1;
+    background: linear-gradient(180deg, #ec4899 0%, #f43f5e 100%);
+    /* Pink to Red gradient like image */
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    margin-top: auto;
+    /* Push to bottom */
+}
+
+#visualizerCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Volume Popup */
+.volume-container {
+    position: relative;
+}
+
+.volume-slider-popup {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 120px;
+    background: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 10px 0;
+    display: none;
+    /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.volume-container:hover .volume-slider-popup {
+    display: flex;
+}
+
+/* Range input vertical styling is tricky cross-browser, let's keep it simple or rotate */
+#npVolumeSlider {
+    writing-mode: bt-lr;
+    /* IE */
+    -webkit-appearance: slider-vertical;
+    /* Webkit */
+    appearance: slider-vertical;
+    width: 8px;
+    height: 100px;
+    outline: none;
+}
+
+.close-np-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.close-np-btn:hover {
+    color: #0f172a;
+}

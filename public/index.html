@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SonicMind | AI-Powered Music Playlist Generator</title>
+    <meta name="description"
+        content="Generate perfect music playlists using unsupervised learning and manual controls. Connect your Spotify or YouTube Music.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Intro Overlay -->
+    <!-- Intro Overlay -->
+    <div id="loadingOverlay">
+        <div class="music-wave-overlay"></div>
+        <div class="loading-text">SonicMind</div>
+        <p
+            style="margin-top: 1rem; color: white; font-size: 1.2rem; text-shadow: 0 0 10px black; z-index: 2; font-weight: bold;">
+            Calibrating Sonic experience... (6s)</p>
+    </div>
+
+    <script>
+        // Intro Animation & Music Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('loadingOverlay');
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            function playIntroMusic() {
+                // Resume audio context if suspended (browser requirement)
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+
+                // Create a master volume for the intro
+                const masterGain = audioCtx.createGain();
+                masterGain.connect(audioCtx.destination);
+                masterGain.gain.setValueAtTime(0.5, now);
+                masterGain.gain.linearRampToValueAtTime(0, now + 6); // Fade out at end
+
+                // 1. Riser Effect (Frequency sweep)
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 5.5); // Rise
+
+                // Lowpass Filter sweep
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(200, now);
+                filter.frequency.exponentialRampToValueAtTime(8000, now + 5.5);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 1); // Fade in
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 5.8); // Cut before blast
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + 6);
+
+                // 2. Harmonic Drone (Chord)
+                // Root
+                const root = audioCtx.createOscillator();
+                root.type = 'sine';
+                root.frequency.setValueAtTime(110, now); // A2
+                const rootGain = audioCtx.createGain();
+                rootGain.gain.value = 0.2;
+                root.connect(rootGain);
+                rootGain.connect(masterGain);
+                root.start(now);
+                root.stop(now + 6);
+
+                // Fifth
+                const fifth = audioCtx.createOscillator();
+                fifth.type = 'sine';
+                fifth.frequency.setValueAtTime(164.81, now); // E3
+                const fifthGain = audioCtx.createGain();
+                fifthGain.gain.value = 0.15;
+                fifth.connect(fifthGain);
+                fifthGain.connect(masterGain);
+                fifth.start(now);
+                fifth.stop(now + 6);
+
+                // 3. Final "Blast" Impact
+                setTimeout(() => {
+                    const blastOsc = audioCtx.createOscillator();
+                    blastOsc.type = 'square';
+                    blastOsc.frequency.setValueAtTime(50, audioCtx.currentTime);
+                    blastOsc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+
+                    const blastGain = audioCtx.createGain();
+                    blastGain.gain.setValueAtTime(1, audioCtx.currentTime);
+                    blastGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+
+                    blastOsc.connect(blastGain);
+                    blastGain.connect(audioCtx.destination);
+
+                    blastOsc.start();
+                    blastOsc.stop(audioCtx.currentTime + 1.5);
+                }, 5800);
+            }
+
+            // Attempt auto-play
+            playIntroMusic();
+
+            // Interaction fallback
+            overlay.addEventListener('click', () => {
+                playIntroMusic();
+            });
+
+            // Trigger Visual Blast & Remove after 6 seconds
+            setTimeout(() => {
+                overlay.classList.add('blast');
+                // Allow animation to finish before removing from DOM
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 800);
+            }, 6000);
+        });
+    </script>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-wave-square"></i>
+            Sonic<span>Mind</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html" class="active" style="color:var(--primary)">Home</a>
+            <a href="player.html">Web Player</a>
+            <a href="upload.html">Library</a>
+            <a href="generator.html">Generator</a>
+        </div>
+        <button class="btn btn-outline" id="connectBtn">Connect App</button>
+    </nav>
+
+    <header class="hero">
+        <h1 class="animate-pop delay-1">Intelligent Playlists,<br>Powered by Sonic AI</h1>
+        <p class="animate-pop delay-2">Experience the future of music curation. Our unsupervised learning algorithm
+            analyzes your
+            library to create mood-perfect clusters and seamless transitions.</p>
+        <div class="hero-btns animate-pop delay-3">
+            <a href="generator.html" class="btn btn-primary">Start Generating</a>
+            <a href="upload.html" class="btn btn-outline">Upload Music</a>
+        </div>
+    </header>
+
+    <section class="container">
+        <h2 class="animate-pop delay-2" style="text-align: center; margin-bottom: 3rem; font-size: 2.5rem;">One
+            Platform, All Your Music</h2>
+        <div class="grid-3">
+            <div class="card glass integration-card animate-pop delay-3" onclick="openConnectModal('Spotify')">
+                <div class="card-icon">
+                    <i class="fab fa-spotify"></i>
+                </div>
+                <h3>Spotify Sync</h3>
+                <p>Connect your Spotify account to sync playlists and discover new music based on your listening habits.
+                </p>
+            </div>
+            <div class="card glass integration-card animate-pop delay-4" onclick="openConnectModal('YouTube Music')">
+                <div class="card-icon">
+                    <i class="fab fa-youtube"></i>
+                </div>
+                <h3>YouTube Music</h3>
+                <p>Import your favorite tracks and videos directly from YouTube Music into our generator.</p>
+            </div>
+            <div class="card glass integration-card animate-pop delay-5" onclick="window.location.href='upload.html'">
+                <div class="card-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Local Library</h3>
+                <p>Upload your own high-fidelity audio files and let our AI analyze their sonic signature.</p>
+            </div>
+            <div class="card glass integration-card animate-pop delay-5"
+                onclick="window.location.href='csv-upload.html'">
+                <div class="card-icon">
+                    <i class="fas fa-file-csv"></i>
+                </div>
+                <h3>Import CSV</h3>
+                <p>Bulk import track metadata from CSV datasets for large-scale library management.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer
+        style="margin-top: 5rem; padding: 3rem 5%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); text-align: center; border-top: 1px solid var(--glass-border);">
+        <div class="container" style="padding-top: 0; padding-bottom: 0;">
+            <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-main);">About SonicMind</h3>
+                <p style="max-width: 600px; margin: 0 auto; color: var(--text-muted);">
+                    SonicMind is a next-generation music playlist generator powered by advanced unsupervised learning
+                    algorithms.
+                    It analyzes audio features like energy, valence, and danceability to curate the perfect vibe for any
+                    moment.
+                    Manage your local library, import datasets, or sync with your favorite streaming apps.
+                </p>
+            </div>
+
+            <div
+                style="border-top: 1px solid var(--glass-border); padding-top: 2rem; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <p style="font-size: 0.9rem; color: var(--text-muted);">© 2026 SonicMind. All rights reserved.</p>
+                <div style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 1.1rem;">
+                    Made with <i class="fas fa-heart"
+                        style="color: var(--secondary); margin: 0 5px; animation: pulse 1.5s infinite;"></i> by <span
+                        style="background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Amit
+                        Kumar</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Connect Modal -->
+    <div class="modal-overlay" id="connectModal">
+        <div class="modal-content glass animate">
+            <h2 id="modalTitle" style="margin-bottom: 2rem;">Connect Application</h2>
+            <form id="connectForm">
+                <div class="form-group">
+                    <label>Music Application Email</label>
+                    <input type="email" placeholder="email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>App Password</label>
+                    <input type="password" placeholder="••••••••" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" style="flex: 1" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1">Connect Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const modal = document.getElementById('connectModal');
+        const modalTitle = document.getElementById('modalTitle');
+
+        let currentConnectApp = 'Spotify';
+
+        function openConnectModal(appName) {
+            currentConnectApp = appName;
+            modalTitle.innerText = `Connect to ${appName}`;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        document.getElementById('connectForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Save preference to localStorage for the Generator to use
+            localStorage.setItem('sonicmind_connected_app', currentConnectApp);
+            alert(`Successfully connected to ${currentConnectApp}! The generator will now redirect tracks to this app.`);
+            closeModal();
+        });
+
+        document.getElementById('connectBtn').addEventListener('click', () => openConnectModal('Spotify'));
+
+        // Typewriter Effect
+        document.addEventListener('DOMContentLoaded', () => {
+            // Only run after the intro blast (approx 6.8s) or check for visibility
+            setTimeout(() => {
+                const heroTitle = document.querySelector('.hero h1');
+                const heroDesc = document.querySelector('.hero p');
+
+                if (heroTitle) typeWriter(heroTitle, 50);
+                setTimeout(() => {
+                    if (heroDesc) typeWriter(heroDesc, 20);
+                }, 2500); // Start p after h1 finishes roughly
+            }, 6500); // 6s intro + 0.5s buffer
+        });
+
+        function typeWriter(element, speed) {
+            const text = element.innerText;
+            element.innerHTML = '';
+            element.classList.remove('animate-pop', 'delay-1', 'delay-2'); // Remove CSS fade-ins to avoid conflict
+            element.style.opacity = '1'; // Ensure visible for typing
+
+            const span = document.createElement('span');
+            span.className = 'typewriter-text';
+            element.appendChild(span);
+
+            let i = 0;
+            span.style.maxWidth = '100%'; // Allow text to flow
+            span.style.borderRight = '.15em solid var(--primary)';
+            span.innerText = '';
+
+            function type() {
+                if (i < text.length) {
+                    span.innerText += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    span.classList.add('typewriter-done');
+                    span.style.borderRight = 'none';
+                }
+            }
+            type();
+        }
+
+        // Background micro-animations simulation
+        window.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            document.body.style.backgroundPosition = `${x * 10}% ${y * 10}%`;
+        });
+    </script>
+</body>
+
+</html>

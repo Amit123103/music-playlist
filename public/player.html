@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Player | SonicMind</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/nowplaying.css">
+    <style>
+        .player-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            height: calc(100vh - 180px);
+            /* Adjust for nav + player bar */
+        }
+
+        .sidebar {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .main-view {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .sidebar-item {
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .sidebar-item.active {
+            border-left: 3px solid var(--primary);
+        }
+
+        .track-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 150px 80px;
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--glass-border);
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .track-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .track-row.playing {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .player-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .sidebar {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-wave-square"></i>
+            Sonic<span>Mind</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="player.html" class="active" style="color:var(--primary)">Web Player</a>
+            <a href="upload.html">Library</a>
+            <a href="generator.html">Generator</a>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 100px; max-width: 1600px;">
+        <div class="player-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h3
+                    style="margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                    Collection</h3>
+                <div class="sidebar-item active" onclick="switchView('all')">
+                    <i class="fas fa-music"></i> All Tracks
+                </div>
+
+                <h3
+                    style="margin: 1.5rem 0 1rem; font-size: 1.1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                    Playlists</h3>
+                <div id="playlistSidebar">
+                    <!-- Specific Playlists Injected Here -->
+                    <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-view" id="playerMainView">
+                <header style="margin-bottom: 2rem; display: flex; align-items: flex-end; gap: 20px;">
+                    <div
+                        style="width: 150px; height: 150px; background: var(--accent-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: white;">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div>
+                        <h4 style="text-transform: uppercase; color: var(--text-muted);">Playlist</h4>
+                        <h1 id="viewTitle" style="font-size: 3rem; margin: 0.5rem 0;">All Tracks</h1>
+                        <p id="viewMeta" style="color: var(--text-muted);">0 songs</p>
+                    </div>
+                </header>
+
+                <div class="track-list">
+                    <div class="track-row"
+                        style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                        <div>#</div>
+                        <div>Title</div>
+                        <div>Album</div>
+                        <div><i class="far fa-clock"></i></div>
+                    </div>
+                    <div id="trackListContainer">
+                        <!-- Tracks Injected Here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Now Playing Overlay (Image Style) -->
+    <div id="nowPlayingOverlay" class="glass" style="display:none;">
+        <div class="np-card">
+            <!-- Window Controls Simulation -->
+            <div class="window-controls">
+                <span style="background:#ff5f56"></span>
+                <span style="background:#ffbd2e"></span>
+                <span style="background:#27c93f"></span>
+            </div>
+
+            <div class="np-header">
+                <h3>NOW PLAYING</h3>
+            </div>
+
+            <div class="np-track-info">
+                <h2 id="npTitle">Select a Track</h2>
+                <p id="npArtist">SonicMind</p>
+            </div>
+
+            <!-- Visualizer Container -->
+            <div class="np-visualizer-container">
+                <canvas id="visualizerCanvas"></canvas>
+            </div>
+
+            <!-- Controls -->
+            <div class="np-controls">
+                <button class="np-btn small" id="npShuffleBtn" title="Shuffle"><i class="fas fa-random"></i></button>
+                <div class="main-controls">
+                    <button class="np-btn"
+                        onclick="document.querySelector('.player-btn .fa-step-backward').closest('button').click()"><i
+                            class="fas fa-step-backward"></i></button>
+                    <button class="np-btn play-btn-large" id="npPlayBtn" onclick="togglePlay()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="np-btn"
+                        onclick="document.querySelector('.player-btn .fa-step-forward').closest('button').click()"><i
+                            class="fas fa-step-forward"></i></button>
+                </div>
+                <div class="volume-container">
+                    <button class="np-btn small" id="volBtn"><i class="fas fa-volume-up"></i></button>
+                    <div class="volume-slider-popup">
+                        <input type="range" min="0" max="1" step="0.01" value="1" id="npVolumeSlider">
+                    </div>
+                </div>
+            </div>
+
+            <button class="close-np-btn" onclick="closeNowPlaying()">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script>
+        // Specific Logic for Player Page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadLibrary(); // app.js function
+            await loadPlaylists();
+            switchView('all');
+
+            // Setup Volume Slider
+            const slider = document.getElementById('npVolumeSlider');
+            const audio = document.getElementById('realAudio'); // Might not exist yet if injectPlayer hasn't run? 
+            // app.js runs 'init' on DOMContentLoaded as well. We might race.
+            // Better to check or wait.
+            // Actually app.js is included before this script, so its DOMContentLoaded listener is registered first? 
+            // No, scripts run in order, but listener registration order matters.
+            // app.js listener is at the bottom of app.js.
+            // This script is after app.js. So app.js listener fires first usually? 
+            // Actually, we can just defer this logic slightly or check in the event.
+
+            setTimeout(() => {
+                const audioFn = document.getElementById('realAudio');
+                if (slider && audioFn) {
+                    slider.value = audioFn.volume;
+                    slider.addEventListener('input', (e) => {
+                        audioFn.volume = e.target.value;
+                    });
+                }
+            }, 500);
+        });
+
+        let playlistsData = [];
+
+        async function loadPlaylists() {
+            try {
+                const res = await fetch('/api/playlists');
+                if (res.ok) {
+                    playlistsData = await res.json();
+                    renderSidebar();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderSidebar() {
+            const container = document.getElementById('playlistSidebar');
+            container.innerHTML = '';
+
+            if (playlistsData.length === 0) {
+                container.innerHTML = '<div style="font-size:0.9rem; color: var(--text-muted);">No playlists yet. Created one in Generator!</div>';
+                return;
+            }
+
+            playlistsData.forEach(pl => {
+                const div = document.createElement('div');
+                div.className = 'sidebar-item';
+                div.innerHTML = `<i class="fas fa-list"></i> ${pl.name}`;
+                div.onclick = () => switchView(pl.id);
+                container.appendChild(div);
+            });
+        }
+
+        function switchView(viewId) {
+            // Update Active State
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+
+            let tracksToShow = [];
+            let title = "";
+            let meta = "";
+
+            if (viewId === 'all') {
+                tracksToShow = state.library;
+                title = "All Tracks";
+                meta = `${tracksToShow.length} songs`;
+                if (document.querySelector('.sidebar-item'))
+                    document.querySelector('.sidebar-item').classList.add('active');
+            } else {
+                const pl = playlistsData.find(p => p.id === viewId);
+                if (pl) {
+                    title = pl.name;
+                    tracksToShow = state.library.filter(t => pl.tracks.includes(t.id));
+                    meta = `${tracksToShow.length} songs • Created ${new Date(pl.created).toLocaleDateString()}`;
+                }
+            }
+
+            document.getElementById('viewTitle').innerText = title;
+            document.getElementById('viewMeta').innerText = meta;
+            renderTrackList(tracksToShow);
+        }
+
+        function renderTrackList(tracks) {
+            const container = document.getElementById('trackListContainer');
+            container.innerHTML = '';
+
+            tracks.forEach((track, index) => {
+                const div = document.createElement('div');
+                div.className = 'track-row';
+                div.onclick = () => playLocalTrack(track.id);
+
+                div.innerHTML = `
+                    <div style="color: var(--text-muted);">${index + 1}</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(track.title)}&background=random" style="width:30px; height:30px; border-radius:4px;">
+                        <div>
+                            <div style="font-weight:600; font-size:1rem;">${track.title}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">${track.artist}</div>
+                        </div>
+                    </div>
+                    <div style="color:var(--text-muted); font-size:0.9rem;">${track.album || 'Unknown'}</div>
+                    <div style="color:var(--text-muted); font-size:0.9rem;">${formatTime(track.duration)}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- VISUALIZER & OVERLAY LOGIC ---
+        let audioCtx, analyser, dataArray, source;
+        let isVisualizerInit = false;
+
+        // Override global playLocalTrack
+        window.playLocalTrack = function (id) {
+            const song = state.library.find(s => s.id === id);
+            if (!song) return;
+
+            console.log("Playing with Visualizer:", song.title);
+
+            // 1. Show Bottom Bar (Legacy support)
+            const playerBar = document.getElementById('sonicPlayer');
+            if (playerBar) playerBar.classList.add('active');
+
+            const pTitle = document.getElementById('pTitle');
+            if (pTitle) pTitle.innerText = song.title;
+
+            const pArtist = document.getElementById('pArtist');
+            if (pArtist) pArtist.innerText = song.artist;
+
+            // 2. Play Audio using existing element
+            const audio = document.getElementById('realAudio');
+            const src = `/uploads/${song.filename}`;
+            if (audio.src !== window.location.origin + src) {
+                audio.src = src;
+            }
+            audio.play().catch(console.error);
+
+            // Update ALL Play Buttons
+            document.querySelectorAll('.play-xl, .play-btn-large').forEach(btn => {
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+            });
+
+            // 3. Update Overlay Info
+            document.getElementById('npTitle').innerText = song.title;
+            document.getElementById('npArtist').innerText = song.artist;
+
+            // 4. Open Overlay
+            openNowPlaying();
+
+            // 5. Initialize Visualizer
+            if (!isVisualizerInit) {
+                initVisualizer(audio);
+                isVisualizerInit = true;
+            }
+        };
+
+        // Sync Play/Pause
+        window.togglePlay = function () {
+            const audio = document.getElementById('realAudio');
+            if (!audio) return;
+
+            if (audio.paused) {
+                audio.play();
+                document.querySelectorAll('.play-xl, .play-btn-large').forEach(btn => {
+                    btn.innerHTML = '<i class="fas fa-pause"></i>';
+                });
+            } else {
+                audio.pause();
+                document.querySelectorAll('.play-xl, .play-btn-large').forEach(btn => {
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                });
+            }
+        }
+
+        function openNowPlaying() {
+            const overlay = document.getElementById('nowPlayingOverlay');
+            overlay.style.display = 'flex';
+            // Trigger drawing
+            if (isVisualizerInit) drawVisualizer();
+        }
+
+        window.closeNowPlaying = function () {
+            document.getElementById('nowPlayingOverlay').style.display = 'none';
+        }
+
+        function initVisualizer(audioElement) {
+            // Check if context exists
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            try {
+                // If we re-bind, we might get error if source node already exists for this element.
+                // We'll try-catch. Ideally we check if it's already connected.
+                // Since this is a simple implementation, we assume first run.
+                if (!source) {
+                    source = audioCtx.createMediaElementSource(audioElement);
+                    analyser = audioCtx.createAnalyser();
+                    source.connect(analyser);
+                    analyser.connect(audioCtx.destination);
+
+                    analyser.fftSize = 128; // Smaller for chunkier bars like image
+                    const bufferLength = analyser.frequencyBinCount;
+                    dataArray = new Uint8Array(bufferLength);
+
+                    drawVisualizer();
+                }
+            } catch (e) {
+                console.log("Visualizer connect error (likely already connected):", e);
+            }
+
+            // Resume context if suspended (browser policy)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function drawVisualizer() {
+            const canvas = document.getElementById('visualizerCanvas');
+            const ctx = canvas.getContext('2d');
+
+            if (!canvas.parentElement) return;
+
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+
+            function renderFrame() {
+                // Stop loop if overlay closed? No, keep it running or check visibility
+                if (document.getElementById('nowPlayingOverlay').style.display === 'none') {
+                    // Stop animation loop to save battery?
+                    // We can restart it in openNowPlaying
+                    // return; 
+                    // Let's keep it simple for now, or just limit updates
+                }
+
+                requestAnimationFrame(renderFrame);
+
+                if (!analyser) return;
+                analyser.getByteFrequencyData(dataArray);
+
+                // Clear with transparent or gradient? 
+                // The container has the background. Canvas is transparent.
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const barWidth = (canvas.width / dataArray.length) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < dataArray.length; i++) {
+                    barHeight = (dataArray[i] / 255) * canvas.height * 0.8; // Scale
+
+                    // White bars
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+                    // Rounded caps?
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                    x += barWidth + 2;
+                }
+            }
+            renderFrame();
+        }
+    </script>
+</body>
+
+</html>
